@@ -195,12 +195,6 @@ app.put("/approve/:student_id", async (req, res) => {
     });
   }
 });
-/* =========================
-   START SERVER
-========================= */
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
-});
 
 /* =========================
    GENERATE DOCUMENT PDF
@@ -451,4 +445,12 @@ doc.font("Helvetica-Bold")
       message: "PDF generation failed",
     });
   }
+});
+/* =========================
+   START SERVER
+========================= */
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
