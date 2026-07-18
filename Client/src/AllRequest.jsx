@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaHome, FaFileAlt, FaUsers, FaUser, FaTrash } from "react-icons/fa";
-import axios from "axios";
 import logo from "./assets/logo.jpeg";
 import "./AdminDash.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AllRequests() {
   const navigate = useNavigate();
@@ -27,73 +28,65 @@ export default function AllRequests() {
     setRequests(updated.filter((r) => !r.hiddenForAdmin));
   };
 
-  // Approve request + send email
-const handleApprove = async (studentId, documentType, requestId) => {
+  // Approve request
+  const handleApprove = async (studentId, documentType, requestId) => {
+    const confirmApprove = window.confirm("Approve this request?");
+    if (!confirmApprove) return;
 
-  const confirmApprove = window.confirm("Approve this request?");
-  if (!confirmApprove) return;
-
-  try {
-    const response = await fetch(
-      `http://localhost:5000/approve/${studentId}`,
-      {
+    try {
+      const response = await fetch(`${API_URL}/approve/${studentId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ documentType }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Approval failed");
+        return;
       }
-    );
 
-    if (!response.ok) {
-      alert("Approval failed");
-      return;
+      updateStatus(requestId, "Approved");
+      alert("Approved + Email Sent ✅");
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
     }
+  };
 
-    updateStatus(requestId, "Approved");
+  // Reject request
+  const handleReject = async (studentId, documentType, requestId) => {
+    const confirmReject = window.confirm("Reject this request?");
+    if (!confirmReject) return;
 
-    alert("Approved + Email Sent ✅");
-
-  } catch (error) {
-    console.error(error);
-    alert("Server error");
-  }
-};
-
-
-const handleReject = async (studentId, documentType, requestId) => {
-
-  const confirmReject = window.confirm("Reject this request?");
-  if (!confirmReject) return;
-
-  try {
-    const response = await fetch(
-      `http://localhost:5000/reject/${studentId}`,
-      {
+    try {
+      const response = await fetch(`${API_URL}/reject/${studentId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ documentType }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Reject failed");
+        return;
       }
-    );
 
-    if (!response.ok) {
-      alert("Reject failed");
-      return;
+      updateStatus(requestId, "Rejected");
+      alert("Rejected + Email Sent ❌");
+    } catch (error) {
+      console.error(error);
+      alert("Server error");
     }
+  };
 
-    updateStatus(requestId, "Rejected");
-
-    alert("Rejected + Email Sent ❌");
-
-  } catch (error) {
-    console.error(error);
-    alert("Server error");
-  }
-};
-
-  // Delete request (after approval/rejection)
+  // Delete request
   const handleDelete = (id) => {
     const confirmDelete = window.confirm("Are you sure?");
     if (!confirmDelete) return;
@@ -110,7 +103,6 @@ const handleReject = async (studentId, documentType, requestId) => {
 
   return (
     <div className="dashboard-container">
-
       {/* Sidebar */}
       <div className="sidebar">
         <img src={logo} alt="logo" />
@@ -143,10 +135,9 @@ const handleReject = async (studentId, documentType, requestId) => {
         </ul>
       </div>
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="admin-main">
         <div className="admin-content-wrapper">
-
           {/* Header */}
           <div className="admin-header">
             <h1>All Requests</h1>
@@ -194,7 +185,6 @@ const handleReject = async (studentId, documentType, requestId) => {
                     <td>{req.studentId}</td>
                     <td>{req.date}</td>
 
-                    {/* Status */}
                     <td
                       className={
                         req.status === "Pending"
@@ -207,7 +197,6 @@ const handleReject = async (studentId, documentType, requestId) => {
                       {req.status}
                     </td>
 
-                    {/* Approve Reject Buttons */}
                     <td
                       onClick={(e) => {
                         e.stopPropagation();
@@ -217,7 +206,7 @@ const handleReject = async (studentId, documentType, requestId) => {
                         <>
                           <button
                             onClick={() =>
-                             handleApprove(req.studentId, req.type, req.id)
+                              handleApprove(req.studentId, req.type, req.id)
                             }
                             style={{
                               background: "green",
@@ -249,7 +238,6 @@ const handleReject = async (studentId, documentType, requestId) => {
                       )}
                     </td>
 
-                    {/* Delete Button */}
                     <td
                       onClick={(e) => {
                         e.stopPropagation();
@@ -283,7 +271,6 @@ const handleReject = async (studentId, documentType, requestId) => {
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     </div>

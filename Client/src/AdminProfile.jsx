@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import logo from "./assets/logo.jpeg";
 import "./Dashboard.css";
 
-export default function AdminProfile() {
+const API_URL = import.meta.env.VITE_API_URL;
 
+export default function AdminProfile() {
   const navigate = useNavigate();
   const [admin, setAdmin] = useState(null);
 
   useEffect(() => {
-
     const adminId = localStorage.getItem("admin_id");
 
     if (!adminId) {
@@ -20,9 +20,7 @@ export default function AdminProfile() {
 
     const fetchAdmin = async () => {
       try {
-       const res = await fetch(
-  `http://localhost:5000/admin/${adminId}`
-);
+        const res = await fetch(`${API_URL}/admin/${adminId}`);
 
         if (!res.ok) {
           navigate("/");
@@ -31,7 +29,6 @@ export default function AdminProfile() {
 
         const data = await res.json();
         setAdmin(data);
-
       } catch (error) {
         console.error("Error fetching admin:", error);
         navigate("/");
@@ -39,36 +36,42 @@ export default function AdminProfile() {
     };
 
     fetchAdmin();
-
   }, [navigate]);
 
   return (
     <div className="dashboard-container">
-
       {/* Sidebar */}
       <div className="sidebar">
         <img src={logo} alt="logo" />
 
         <ul className="sidebar-menu">
-          <li onClick={() => navigate("/admin")} 
-            style={{ cursor: "pointer" }}> <FaHome /> Dashboard</li>
+          <li
+            onClick={() => navigate("/admin")}
+            style={{ cursor: "pointer" }}
+          >
+            <FaHome /> Dashboard
+          </li>
 
-          <li 
-            onClick={() => navigate("/all-requests")} 
+          <li
+            onClick={() => navigate("/all-requests")}
             style={{ cursor: "pointer" }}
           >
             <FaFileAlt /> All Requests
           </li>
 
-          <li 
-            onClick={() => navigate("/students")} 
+          <li
+            onClick={() => navigate("/students")}
             style={{ cursor: "pointer" }}
           >
             <FaUsers /> Students
           </li>
 
-          <li onClick={() => navigate("/adminprofile")} 
-            style={{ cursor: "pointer" }}><FaUser /> Profile</li>
+          <li
+            onClick={() => navigate("/adminprofile")}
+            style={{ cursor: "pointer" }}
+          >
+            <FaUser /> Profile
+          </li>
         </ul>
       </div>
 
@@ -76,7 +79,6 @@ export default function AdminProfile() {
       <div className="main-content">
         {admin && (
           <div className="profile-wrapper">
-
             {/* Profile Card */}
             <div className="profile-card-modern">
               <div className="profile-avatar-modern">
@@ -88,12 +90,16 @@ export default function AdminProfile() {
               <div className="profile-divider"></div>
 
               <div className="profile-details-modern">
-                <p><strong>Admin ID:</strong> {admin.admin_id}</p>
-                <p><strong>Contact:</strong> {admin.contact}</p>
+                <p>
+                  <strong>Admin ID:</strong> {admin.admin_id}
+                </p>
+                <p>
+                  <strong>Contact:</strong> {admin.contact}
+                </p>
               </div>
             </div>
 
-            {/* Professional Details Card */}
+            {/* Professional Details */}
             <div className="profile-card-modern extra-details-card">
               <div className="details-header">
                 <h3>Professional Details</h3>
@@ -102,16 +108,20 @@ export default function AdminProfile() {
               <div className="profile-divider"></div>
 
               <div className="profile-details-modern">
-                <p><strong>Email:</strong> {admin.email}</p>
-                <p><strong>Address:</strong> {admin.address}</p>
-                <p><strong>Role:</strong> Document Administrator</p>
+                <p>
+                  <strong>Email:</strong> {admin.email}
+                </p>
+                <p>
+                  <strong>Address:</strong> {admin.address}
+                </p>
+                <p>
+                  <strong>Role:</strong> Document Administrator
+                </p>
               </div>
             </div>
-
           </div>
         )}
       </div>
-
     </div>
   );
 }

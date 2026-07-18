@@ -4,6 +4,8 @@ import { FaKey, FaUser } from "react-icons/fa";
 import logo from "./assets/logo.jpeg";
 import { useNavigate, Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function AdminLogin() {
   const navigate = useNavigate();
 
@@ -12,49 +14,52 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await fetch("http://localhost:5000/admin-login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        admin_id: adminId.trim(),
-        password: password.trim()
-      })
-    });
+    setError("");
 
-    const data = await response.json();
+    try {
+      const response = await fetch(`${API_URL}/admin-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          admin_id: adminId.trim(),
+          password: password.trim(),
+        }),
+      });
 
-    if (data.success) {
-      localStorage.setItem("admin_id", data.admin_id);
-      navigate("/admin");
-    } else {
-      setError(data.message || "Invalid credentials");
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem("admin_id", data.admin_id);
+        navigate("/admin");
+      } else {
+        setError(data.message || "Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setError("Unable to connect to the server.");
     }
-
-  } catch (err) {
-    console.error(err);
-    setError("Server not responding");
-  }
-};
-
-
+  };
 
   return (
     <div className="container">
       {/* Sidebar */}
       <div className="sidebar">
-        <img src={logo} alt="image" />
+        <img src={logo} alt="College Logo" />
 
         <ul>
           <li>
             <FaKey />
-            <Link 
-              to="/" 
-              style={{ textDecoration: "none", color: "inherit", marginLeft: "8px" }}
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                marginLeft: "8px",
+              }}
             >
               Student Login
             </Link>
@@ -62,9 +67,13 @@ export default function AdminLogin() {
 
           <li>
             <FaUser />
-            <Link 
-              to="/admin-login" 
-              style={{ textDecoration: "none", color: "inherit", marginLeft: "8px" }}
+            <Link
+              to="/admin-login"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                marginLeft: "8px",
+              }}
             >
               Admin Login
             </Link>
@@ -85,6 +94,7 @@ export default function AdminLogin() {
                 placeholder="Enter Admin ID"
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
+                required
               />
             </div>
 
@@ -95,10 +105,15 @@ export default function AdminLogin() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            {error && (
+              <p style={{ color: "red", marginTop: "10px" }}>
+                {error}
+              </p>
+            )}
 
             <button type="submit">Login</button>
           </form>

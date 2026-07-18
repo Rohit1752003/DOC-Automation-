@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import "./LoginPage.css";
 import { FaKey, FaUser } from "react-icons/fa";
 import logo from "./assets/logo.jpeg";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,48 +16,70 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setError("");
+
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          student_id: studentId,
-          password: password
-        })
+          student_id: studentId.trim(),
+          password: password.trim(),
+        }),
       });
 
       const data = await response.json();
 
-     if (data.success) {
-  const { success, ...studentData } = data; // remove success
-  localStorage.setItem("student", JSON.stringify(studentData));
-  navigate("/dashboard");
-}
+      if (response.ok && data.success) {
+        const { success, ...studentData } = data;
 
-else {
-        setError(data.message);
+        localStorage.setItem("student", JSON.stringify(studentData));
+
+        navigate("/dashboard");
+      } else {
+        setError(data.message || "Invalid Student ID or Password");
       }
-
     } catch (err) {
-      setError("Server not responding");
+      console.error(err);
+      setError("Unable to connect to the server.");
     }
   };
 
   return (
     <div className="container">
       <div className="sidebar">
-        <img src={logo} alt="image" />
+        <img src={logo} alt="College Logo" />
+
         <ul>
-       <li>
-  <FaKey /> <Link to="/">Student Login</Link>
-</li>
+          <li>
+            <FaKey />
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                marginLeft: "8px",
+              }}
+            >
+              Student Login
+            </Link>
+          </li>
 
-<li>
-  <FaUser /> <Link to="/admin-login">Admin Login</Link>
-</li>
-
+          <li>
+            <FaUser />
+            <Link
+              to="/admin-login"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                marginLeft: "8px",
+              }}
+            >
+              Admin Login
+            </Link>
+          </li>
         </ul>
       </div>
 
@@ -68,25 +90,38 @@ else {
           <form onSubmit={handleSubmit}>
             <div>
               <label>Student ID</label>
+
               <input
                 type="text"
                 placeholder="Enter Student ID"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
+                required
               />
             </div>
 
             <div>
               <label>Password</label>
+
               <input
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            {error && (
+              <p
+                style={{
+                  color: "red",
+                  marginTop: "10px",
+                }}
+              >
+                {error}
+              </p>
+            )}
 
             <button type="submit">Login</button>
           </form>

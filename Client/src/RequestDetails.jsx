@@ -4,6 +4,8 @@ import logo from "./assets/logo.jpeg";
 import "./AdminDash.css";
 import { FaHome, FaFileAlt, FaUsers, FaUser } from "react-icons/fa";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function RequestDetails() {
 
   const { id } = useParams();
@@ -36,18 +38,20 @@ export default function RequestDetails() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/approve/${request.studentId}`,
+        `${API_URL}/approve/${request?.studentId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            documentType: request.type,
+            documentType: request?.type,
           }),
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        alert("Approval failed");
+        alert(data.message || "Approval failed");
         return;
       }
 
@@ -70,18 +74,20 @@ export default function RequestDetails() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/reject/${request.studentId}`,
+        `${API_URL}/reject/${request?.studentId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            documentType: request.type,
+            documentType: request?.type,
           }),
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        alert("Reject failed");
+        alert(data.message || "Reject failed");
         return;
       }
 
@@ -103,33 +109,38 @@ export default function RequestDetails() {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/generate-document",
+        `${API_URL}/generate-document`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
 
           body: JSON.stringify({
-            type: request.type,
-            name: request.name,
-            studentId: request.studentId,
-            department: request.department,   // ✅ ADDED FIX
-            classname: request.className,
-            rollNo: request.rollNo            // ✅ FIXED HERE
+            type: request?.type,
+            name: request?.name,
+            studentId: request?.studentId,
+            department: request?.department,   // ✅ ADDED FIX
+            classname: request?.className,
+            rollNo: request?.rollNo            // ✅ FIXED HERE
           }),
         }
       );
 
       const data = await response.json();
 
+      if (!response.ok) {
+        alert(data.message || "PDF generation failed");
+        return;
+      }
+
       if (!data.success) {
-        alert("PDF generation failed");
+        alert(data.message || "PDF generation failed");
         return;
       }
 
       const stored = JSON.parse(localStorage.getItem("requests")) || [];
 
       const updated = stored.map((r) =>
-        r.id === request.id
+        r.id === request?.id
           ? {
               ...r,
               status: "Approved",
@@ -141,16 +152,23 @@ export default function RequestDetails() {
 
       localStorage.setItem("requests", JSON.stringify(updated));
 
-      await fetch(
-        `http://localhost:5000/approve/${request.studentId}`,
+      const approveResponse = await fetch(
+        `${API_URL}/approve/${request?.studentId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            documentType: request.type,
+            documentType: request?.type,
           }),
         }
       );
+
+      const approveData = await approveResponse.json();
+
+      if (!approveResponse.ok) {
+        alert(approveData.message || "Document generated but approval status sync failed");
+        return;
+      }
 
       alert("Document Generated + Approved + Email Sent ✅");
 
@@ -172,10 +190,10 @@ export default function RequestDetails() {
         <img src={logo} alt="logo" />
 
         <ul className="sidebar-menu">
-          <li onClick={() => navigate("/admin")}><FaHome /> Dashboard</li>
-          <li onClick={() => navigate("/all-requests")}><FaFileAlt /> All Requests</li>
-          <li onClick={() => navigate("/students")}><FaUsers /> Students</li>
-          <li onClick={() => navigate("/adminprofile")}><FaUser /> Profile</li>
+          <li onClick={() => navigate("/admin")} style={{ cursor: "pointer" }}><FaHome /> Dashboard</li>
+          <li onClick={() => navigate("/all-requests")} style={{ cursor: "pointer" }}><FaFileAlt /> All Requests</li>
+          <li onClick={() => navigate("/students")} style={{ cursor: "pointer" }}><FaUsers /> Students</li>
+          <li onClick={() => navigate("/adminprofile")} style={{ cursor: "pointer" }}><FaUser /> Profile</li>
         </ul>
       </div>
 
@@ -219,7 +237,7 @@ export default function RequestDetails() {
                 <div style={{ marginTop: "25px" }}>
                   <h3>Submitted Document</h3>
 
-                  {request.pdfFile.startsWith("data:application/pdf") ? (
+                  {request.pdfFile?.startsWith("data:application/pdf") ? (
                     <iframe
                       src={request.pdfFile}
                       title="Submitted PDF"
